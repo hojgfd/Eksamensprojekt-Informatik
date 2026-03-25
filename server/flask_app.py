@@ -1,13 +1,7 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask
 import os
 
-from server.database import get_db, init_db
 
-# Simple in-memory parking state
-parking_spots = {i: None for i in range(1, 19)}  # 12 spots
-blocked_spots = {16, 17, 18}  # Kan ikke reserveres
-
-init_db()
 app = Flask(__name__)
 @app.route('/update_server')
 def update():
@@ -19,6 +13,31 @@ def update():
 @app.route('/')
 def hello_world():
     return 'Hello from Flask!'
+
+@app.route('/upload_form')
+def upload_form():
+    return render_template("upload_form.html")
+
+# eksempel for curl:
+# curl.exe -X POST http://127.0.0.1:5000/upload -F "image=@C:\Users\agc\Desktop\angry_bird_realistisk.jpg"
+# curl.exe -X POST https://oscar1234.pythonanywhere.com/upload -F "image=@C:\Users\agc\Desktop\angry_bird_realistisk.jpg"
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    if 'image' not in request.files:
+        return 'no image part'
+
+    file = request.files['image']
+
+    if file.filename == '':
+        return 'no selected file'
+
+    file.save(f'server/uploads/{file.filename}')
+
+    return 'File uploaded successfully'
+
+
+
+
 
 @app.route("/reservation", methods=["GET", "POST"])
 def reservation():
