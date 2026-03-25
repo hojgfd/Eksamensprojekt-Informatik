@@ -2,7 +2,7 @@ import socket
 import struct
 import cv2
 
-HOST = 'YOUR_SERVER_IP'
+HOST = '127.0.0.1:5000'
 PORT = 5001
 
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
