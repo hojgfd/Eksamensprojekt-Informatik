@@ -5,7 +5,7 @@ from server.database import get_db, init_db
 parking_spots = {i: None for i in range(1, 19)} # 12 spots
 blocked_spots = {16, 17, 18} # Kan ikke reserveres
 app = Flask(__name__)
-@app.route('/update_server')
+@app.route('/update_server', methods=["GET", "POST"])
 def update():
     os.system('cd /home/oscar1234/Eksamensprojekt-Informatik && git pull')
     # Til at reload app
