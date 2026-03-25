@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <title>Parkeringsreservation</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(9, 80px);
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .spot {
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid black;
+            font-weight: bold;
+        }
+
+        .free {
+            background-color: lightgreen;
+        }
+
+        .taken {
+            background-color: lightcoral;
+        }
+
+        .blocked {
+            background-color: purple;
+            color: white;
+        }
+
+        input {
+            padding: 10px;
+            font-size: 16px;
+            width: 200px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+
+        .legend {
+            margin-top: 20px;
+        }
+
+        .legend span {
+            margin: 0 10px;
+            padding: 5px 10px;
+            border: 1px solid black;
+        }
+
+        .free-box { background-color: lightgreen; }
+        .taken-box { background-color: lightcoral; }
+        .blocked-box { background-color: purple; color: white; }
+    </style>
+</head>
+
+<body>
+
+    <h1>Reservér parkeringsplads</h1>
+
+    <form method="POST" action="/reservation/reserver">
+        <div class="grid">
+            {% for spot in spots %}
+                <div class="spot
+                    {% if spot.id in blocked %}blocked
+                    {% elif spot.plate %}taken
+                    {% else %}free
+                    {% endif %}">
+
+                    {{ spot.id }}
+
+                </div>
+            {% endfor %}
+        </div>
+
+        <input type="text" name="plade" placeholder="Nummerplade" required>
+        <button type="submit">Reservér automatisk</button>
+    </form>
+
+    <div class="legend">
+        <span class="free-box">Ledig</span>
+        <span class="taken-box">Optaget</span>
+        <span class="blocked-box">Ikke reservérbar</span>
+    </div>
+
+</body>
+</html>
