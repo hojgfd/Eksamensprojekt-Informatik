@@ -21,6 +21,6 @@ while True:
         response = requests.post(serverurl+'/upload', files=files)
 
     print(response.status_code, response.text)
-    time.sleep(1)
+    time.sleep(10)
 
 cap.release()
