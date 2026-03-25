@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for
 import os
-from server.database import get_db, init_db
+from database import get_db, init_db
 
 parking_spots = {i: None for i in range(1, 19)} # 12 spots
 blocked_spots = {16, 17, 18} # Kan ikke reserveres
@@ -43,6 +43,7 @@ def upload_file():
 
 @app.route("/reservation", methods=["GET", "POST"])
 def reservation():
+    init_db()
     db = get_db()
     spots = db.execute("SELECT * FROM parking").fetchall()
     db.close()
