@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template, request
 import os
 
 
@@ -13,3 +13,25 @@ def update():
 @app.route('/')
 def hello_world():
     return 'Hello from Flask!'
+
+@app.route('/upload_form')
+def upload_form():
+    return render_template("upload_form.html")
+
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    if 'file' not in request.files:
+        return 'no file part'
+
+    file = request.files['file']
+
+    if file.filename == '':
+        return 'no selected file'
+
+    file.save(f'server/uploads/{file.filename}')
+
+    return 'File uploaded successfully'
+
+
+
+
