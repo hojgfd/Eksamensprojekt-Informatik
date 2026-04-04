@@ -11,15 +11,41 @@ def get_db():
 
 def init_db():
     conn = get_db()
+
+    #parking table
     conn.execute("""
         CREATE TABLE IF NOT EXISTS parking (
             id INTEGER PRIMARY KEY,
-            plate TEXT
+            plate TEXT,
+            date TEXT
         )
     """)
 
+    #account table
+    conn.execute("""
+                 CREATE TABLE IF NOT EXISTS users
+                 (
+                     id
+                     INTEGER
+                     PRIMARY
+                     KEY
+                     AUTOINCREMENT,
+                     username
+                     TEXT
+                     UNIQUE,
+                     password
+                     TEXT,
+                     address
+                     TEXT
+                 )
+                 """)
+
     # Opret 18 pladser hvis de ikke findes
     for i in range(1, 19):
-        conn.execute("INSERT OR IGNORE INTO parking (id, plate) VALUES (?, NULL)", (i,))
+        conn.execute(
+            "INSERT OR IGNORE INTO parking (id, plate, date) VALUES (?, NULL, NULL)",
+            (i,)
+        )
+
     conn.commit()
     conn.close()

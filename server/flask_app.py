@@ -1,14 +1,19 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect
 import os
+from datetime import date, timedelta
 from database import get_db, init_db
+from auth import auth
 
-parking_spots = {i: None for i in range(1, 19)} # 12 spots
-blocked_spots = {16, 17, 18} # Kan ikke reserveres
+parking_spots = {i: None for i in range(1, 19)}
+blocked_spots = {16, 17, 18}
+
 app = Flask(__name__)
+app.secret_key = "minmegethemmeligenøgle"
+app.register_blueprint(auth)
+
 @app.route('/update_server', methods=["GET", "POST"])
 def update():
     os.system('cd /home/oscar1234/Eksamensprojekt-Informatik && git pull')
-    # Til at reload app
     os.system("touch /var/www/oscar1234_pythonanywhere_com_wsgi.py")
     return 'Updated and reloaded'
 
@@ -16,13 +21,68 @@ def update():
 def hello_world():
     return 'Hello from Flask!'
 
+@app.route('/reservation', methods=["GET", "POST"])
+def reservation():
+    init_db()
+    db = get_db()
+
+    tomorrow = (date.today() + timedelta(days=1)).isoformat()
+
+    # Fjern gamle reservationer (valgfrit men smart)
+    db.execute("DELETE FROM parking WHERE date < ?", (tomorrow,))
+    db.commit()
+
+    # Hent pladser for i morgen
+    spots = db.execute("""
+        SELECT * FROM parking
+        WHERE date = ? OR date IS NULL
+    """, (tomorrow,)).fetchall()
+
+    db.close()
+
+    return render_template("reservation.html", spots=spots, blocked=blocked_spots)
+
+
+@app.route("/reservation/reserver", methods=["POST"])
+def reserve():
+    plate = request.form.get("plade")
+
+    tomorrow = (date.today() + timedelta(days=1)).isoformat()
+
+    db = get_db()
+
+    # Find første ledige plads til i morgen
+    spot = db.execute(f"""
+        SELECT id FROM parking
+        WHERE id NOT IN ({",".join(map(str, blocked_spots))})
+        AND (plate IS NULL OR date != ?)
+        ORDER BY id ASC
+        LIMIT 1
+    """, (tomorrow,)).fetchone()
+
+    if spot:
+        # Slet evt. gammel reservation på samme plads
+        db.execute("DELETE FROM parking WHERE id = ? AND date = ?", (spot["id"], tomorrow))
+
+        # Indsæt ny reservation
+        db.execute("""
+                   UPDATE parking
+                   SET plate = ?,
+                       date  = ?
+                   WHERE id = ?
+                   """, (plate, tomorrow, spot["id"]))
+        db.commit()
+
+    db.close()
+
+    return redirect("/reservation")
+
+
 @app.route('/upload_form')
 def upload_form():
     return render_template("upload_form.html")
 
-# eksempel for curl:
-# curl.exe -X POST http://127.0.0.1:5000/upload -F "image=@C:\Users\agc\Desktop\angry_bird_realistisk.jpg"
-# curl.exe -X POST https://oscar1234.pythonanywhere.com/upload -F "image=@C:\Users\agc\Desktop\angry_bird_realistisk.jpg"
+
 @app.route('/upload', methods=['POST'])
 def upload_file():
     if 'image' not in request.files:
@@ -38,45 +98,6 @@ def upload_file():
     return 'File uploaded successfully'
 
 
-
-
-
-@app.route("/reservation", methods=["GET", "POST"])
-def reservation():
-    init_db()
-    db = get_db()
-    spots = db.execute("SELECT * FROM parking").fetchall()
-    db.close()
-
-    return render_template("reservation.html", spots=spots, blocked=blocked_spots)
-
-@app.route("/reservation/reserver", methods=["POST"])
-def reserve():
-    plate = request.form.get("plade")
-
-    db = get_db()
-
-    # Find første ledige plads (ikke blokeret)
-    spot = db.execute("""
-        SELECT id FROM parking
-        WHERE plate IS NULL
-        AND id NOT IN ({})
-        ORDER BY id ASC
-        LIMIT 1
-    """.format(",".join(map(str, blocked_spots)))).fetchone()
-
-    if spot:
-        db.execute(
-            "UPDATE parking SET plate = ? WHERE id = ?",
-            (plate, spot["id"])
-        )
-        db.commit()
-
-    db.close()
-
-    return redirect("/reservation")
-
 @app.route('/get_schedule')
 def get_schedule():
-
     return 'Skemamaxxing'
