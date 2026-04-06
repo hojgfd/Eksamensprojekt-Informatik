@@ -29,7 +29,7 @@ def reservation():
 
     tomorrow = (date.today() + timedelta(days=1)).isoformat()
 
-    # Fjern gamle reservationer
+    # Fjern gamle reservationers
     db.execute("""
                UPDATE parking
                SET plate = NULL,
