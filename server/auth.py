@@ -25,7 +25,11 @@ def login():
         user = get_user(username)
 
         if user and user["password"] == password:
-            session["user_id"] = user["id"]
+            session["user"] = {
+                "id": user["id"],
+                "username": user["username"],
+                "address": user["address"]
+            }
             return redirect("/reservation")
 
     return render_template("login.html")

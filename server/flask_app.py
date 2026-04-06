@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, session
 import os
 from datetime import date, timedelta
 from database import get_db, init_db
@@ -28,8 +28,13 @@ def reservation():
 
     tomorrow = (date.today() + timedelta(days=1)).isoformat()
 
-    # Fjern gamle reservationer (valgfrit men smart)
-    db.execute("DELETE FROM parking WHERE date < ?", (tomorrow,))
+    # Fjern gamle reservationer
+    db.execute("""
+               UPDATE parking
+               SET plate = NULL,
+                   date  = NULL
+               WHERE date < ?
+               """, (tomorrow,))
     db.commit()
 
     # Hent pladser for i morgen
@@ -40,8 +45,12 @@ def reservation():
 
     db.close()
 
-    return render_template("reservation.html", spots=spots, blocked=blocked_spots)
-
+    return render_template(
+        "reservation.html",
+        spots=spots,
+        blocked=blocked_spots,
+        user=session.get("user")
+    )
 
 @app.route("/reservation/reserver", methods=["POST"])
 def reserve():

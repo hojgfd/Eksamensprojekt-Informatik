@@ -78,6 +78,17 @@
 
     <h1>Reservér parkeringsplads</h1>
 
+    {% if user %}
+    <p>
+        Logget ind som: <strong>{{ user.username }}</strong>
+        ({{ user.address }})
+    </p>
+    {% endif %}
+
+    <a href="/logout">
+        <button style="margin-bottom: 20px;">Log ud</button>
+    </a>
+
     <form method="POST" action="/reservation/reserver">
         <div class="grid">
             {% for spot in spots %}
