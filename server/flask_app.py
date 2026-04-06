@@ -18,8 +18,9 @@ def update():
     return 'Updated and reloaded'
 
 @app.route('/')
-def hello_world():
-    return 'Hello from Flask!'
+def home():
+    init_db()
+    return "DB initialized"
 
 @app.route('/reservation', methods=["GET", "POST"])
 def reservation():
