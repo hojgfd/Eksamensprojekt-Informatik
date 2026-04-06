@@ -94,7 +94,7 @@
             {% for spot in spots %}
                 <div class="spot
                     {% if spot.id in blocked %}blocked
-                    {% elif spot.plate %}taken
+                    {% elif spot.date and spot.date == tomorrow %}taken
                     {% else %}free
                     {% endif %}">
 

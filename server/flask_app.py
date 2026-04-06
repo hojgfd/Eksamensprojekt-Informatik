@@ -39,16 +39,23 @@ def reservation():
 
     # Hent pladser for i morgen
     spots = db.execute("""
-        SELECT * FROM parking
-        WHERE date = ? OR date IS NULL
-    """, (tomorrow,)).fetchall()
+                       SELECT *
+                       FROM parking
+                       ORDER BY id ASC
+                       """).fetchall()
 
     db.close()
+
+    #debug
+    print(spots)
+    for s in spots:
+        print(dict(s))
 
     return render_template(
         "reservation.html",
         spots=spots,
         blocked=blocked_spots,
+        tomorrow=tomorrow,
         user=session.get("user")
     )
 
