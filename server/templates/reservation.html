@@ -78,12 +78,27 @@
 
     <h1>Reservér parkeringsplads</h1>
 
+    {% if user %}
+    <p>
+        Logget ind som: <strong>{{ user.username }}</strong>
+        ({{ user.address }})
+    </p>
+    {% endif %}
+
+    <a href="/profile">
+    <button style="margin-bottom: 20px;">Profil</button>
+    </a>
+
+    <a href="/logout">
+        <button style="margin-bottom: 20px;">Log ud</button>
+    </a>
+
     <form method="POST" action="/reservation/reserver">
         <div class="grid">
             {% for spot in spots %}
                 <div class="spot
                     {% if spot.id in blocked %}blocked
-                    {% elif spot.plate %}taken
+                    {% elif spot.date and spot.date == tomorrow %}taken
                     {% else %}free
                     {% endif %}">
 
@@ -93,7 +108,7 @@
             {% endfor %}
         </div>
 
-        <input type="text" name="plade" placeholder="Nummerplade" required>
+        <input type="text" name="plade" value="{{ user.plate or '' }}" placeholder="Nummerplade" required>
         <button type="submit">Reservér automatisk</button>
     </form>
 

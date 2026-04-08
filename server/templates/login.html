@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            text-align: center;
+            padding-top: 100px;
+        }
+        h1 {
+            margin-bottom: 40px;
+        }
+        input {
+            display: block;
+            width: 250px;
+            margin: 10px auto;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+        button {
+            display: block;
+            width: 150px;
+            margin: 20px auto;
+            padding: 12px;
+            font-size: 16px;
+            background: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        a {
+            display: block;
+            margin-top: 15px;
+            color: #007BFF;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Login</h1>
+
+<form method="POST">
+    <input type="text" name="username" placeholder="Brugernavn" required>
+    <input type="password" name="password" placeholder="Kodeord" required>
+    <button type="submit">Login</button>
+</form>
+
+<a href="/register">Opret bruger</a>
+
+</body>
+</html>

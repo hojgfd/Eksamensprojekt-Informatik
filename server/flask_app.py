@@ -1,90 +1,137 @@
-from flask import Flask, render_template, request, redirect, url_for
-import os, time
+from flask import Flask, render_template, request, redirect, session
+import os
+from datetime import date, timedelta
 from database import get_db, init_db
+from auth import auth
 
-parking_spots = {i: None for i in range(1, 19)} # 12 spots
-blocked_spots = {16, 17, 18} # Kan ikke reserveres
+parking_spots = {i: None for i in range(1, 19)}
+blocked_spots = {16, 17, 18}
+
 app = Flask(__name__)
+app.secret_key = "minmegethemmeligenøgle"
+app.register_blueprint(auth)
+
 @app.route('/update_server', methods=["GET", "POST"])
 def update():
     os.system('cd /home/oscar1234/Eksamensprojekt-Informatik && git pull')
-    # Til at reload app
     os.system("touch /var/www/oscar1234_pythonanywhere_com_wsgi.py")
     return 'Updated and reloaded'
 
 @app.route('/')
-def hello_world():
-    return 'Hello from Flask!'
+def home():
+    init_db()
+    return render_template("index.html")
 
-@app.route('/upload_form')
-def upload_form():
-    return render_template("upload_form.html")
-
-# eksempel for curl:
-# curl.exe -X POST http://127.0.0.1:5000/upload -F "image=@C:\Users\agc\Desktop\angry_bird_realistisk.jpg"
-# curl.exe -X POST https://oscar1234.pythonanywhere.com/upload -F "image=@C:\Users\agc\Desktop\angry_bird_realistisk.jpg"
-@app.route('/upload', methods=['POST'])
-def upload_file():
-    if 'image' in request.files:
-        file = request.files['image']
-        if file.filename == '':
-            return 'no selected file'
-
-        file.save(f'server/uploads/images/image-{int(time.time())}{file.filename[file.filename.rfind("."):]}')
-
-        return 'File uploaded successfully'
-
-    if 'count' in request.files:
-        file = request.files['count']
-        if file.filename == '':
-            return 'no selected file'
-
-        file.save(f'server/uploads/counts/count-{int(time.time())}.csv')
-
-        return 'File uploaded successfully'
-
-    return 'no image or count detected'
-
-
-
-
-
-@app.route("/reservation", methods=["GET", "POST"])
+@app.route('/reservation', methods=["GET", "POST"])
 def reservation():
     init_db()
     db = get_db()
-    spots = db.execute("SELECT * FROM parking").fetchall()
+
+    tomorrow = (date.today() + timedelta(days=1)).isoformat()
+
+    # Fjern gamle reservationer
+    db.execute("""
+               UPDATE parking
+               SET plate   = NULL,
+                   date    = NULL,
+                   user_id = NULL
+               WHERE date < ?
+               """, (tomorrow,))
+    db.commit()
+
+    # Hent pladser for i morgen
+    spots = db.execute("""
+                       SELECT *
+                       FROM parking
+                       ORDER BY id ASC
+                       """).fetchall()
+
     db.close()
 
-    return render_template("reservation.html", spots=spots, blocked=blocked_spots)
+    #debug
+    print(spots)
+    for s in spots:
+        print(dict(s))
+
+    return render_template(
+        "reservation.html",
+        spots=spots,
+        blocked=blocked_spots,
+        tomorrow=tomorrow,
+        user=session.get("user")
+    )
 
 @app.route("/reservation/reserver", methods=["POST"])
 def reserve():
+    if "user" not in session:
+        return redirect("/login")
+
+    user = session["user"]
+    user_id = user["id"]
+
     plate = request.form.get("plade")
+    tomorrow = (date.today() + timedelta(days=1)).isoformat()
 
     db = get_db()
 
-    # Find første ledige plads (ikke blokeret)
-    spot = db.execute("""
+    # Fjern gammel reservation fra samme bruger
+    db.execute("""
+        UPDATE parking
+        SET plate = NULL,
+            date = NULL,
+            user_id = NULL
+        WHERE user_id = ?
+    """, (user_id,))
+
+    # Find første ledige plads
+    spot = db.execute(f"""
         SELECT id FROM parking
-        WHERE plate IS NULL
-        AND id NOT IN ({})
+        WHERE id NOT IN ({",".join(map(str, blocked_spots))})
+        AND (date IS NULL OR date != ?)
         ORDER BY id ASC
         LIMIT 1
-    """.format(",".join(map(str, blocked_spots)))).fetchone()
+    """, (tomorrow,)).fetchone()
 
+    # Lav ny reservation
     if spot:
-        db.execute(
-            "UPDATE parking SET plate = ? WHERE id = ?",
-            (plate, spot["id"])
-        )
+        db.execute("""
+            UPDATE parking
+            SET plate = ?,
+                date = ?,
+                user_id = ?
+            WHERE id = ?
+        """, (plate, tomorrow, user_id, spot["id"]))
         db.commit()
 
     db.close()
 
     return redirect("/reservation")
 
+
+@app.route('/upload_form')
+def upload_form():
+    return render_template("upload_form.html")
+
+@app.route('/overblik')
+def overblik():
+    return render_template("overblik.html")
+
+
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    if 'image' not in request.files:
+        return 'no image part'
+
+    file = request.files['image']
+
+    if file.filename == '':
+        return 'no selected file'
+
+    file.save(f'server/uploads/{file.filename}')
+
+    return 'File uploaded successfully'
+
+
 @app.route('/get_schedule')
 def get_schedule():
-
     return 'Skemamaxxing'

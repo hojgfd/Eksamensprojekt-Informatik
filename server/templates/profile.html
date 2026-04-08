@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Min profil</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            text-align: center;
+            padding-top: 80px;
+        }
+        h1 {
+            margin-bottom: 40px;
+        }
+        input {
+            display: block;
+            width: 250px;
+            margin: 10px auto;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+        button {
+            display: block;
+            width: 180px;
+            margin: 20px auto;
+            padding: 12px;
+            font-size: 16px;
+            background: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        a {
+            display: block;
+            margin-top: 15px;
+            color: #007BFF;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Min profil</h1>
+
+<form method="POST">
+    <input type="text" name="address" placeholder="Adresse" value="{{ user.address }}" required>
+    <input type="text" name="plate" placeholder="Nummerplade" value="{{ user.plate or '' }}">
+    <button type="submit">Gem ændringer</button>
+</form>
+
+<a href="/reservation">Tilbage</a>
+
+</body>
+</html>
