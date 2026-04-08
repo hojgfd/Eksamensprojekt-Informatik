@@ -20,7 +20,7 @@ def update():
 @app.route('/')
 def home():
     init_db()
-    return "DB initialized"
+    return render_template("index.html")
 
 @app.route('/reservation', methods=["GET", "POST"])
 def reservation():
