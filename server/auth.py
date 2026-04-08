@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, session
-from models import create_user, get_user
+from models import create_user, get_user, update_user
 
 auth = Blueprint("auth", __name__)
 
@@ -9,8 +9,9 @@ def register():
         username = request.form["username"]
         password = request.form["password"]
         address = request.form["address"]
+        plate = request.form["plate"]
 
-        create_user(username, password, address)
+        create_user(username, password, address, plate)
         return redirect("/login")
 
     return render_template("register.html")
@@ -39,3 +40,30 @@ def login():
 def logout():
     session.clear()
     return redirect("/login")
+
+@auth.route("/profile", methods=["GET", "POST"])
+def profile():
+    if "user" not in session:
+        return redirect("/login")
+
+    user = session["user"]
+
+    if request.method == "POST":
+        address = request.form["address"]
+        plate = request.form["plate"]
+
+        update_user(user["id"], address, plate)
+
+        # reload bruger fra DB
+        updated_user = get_user(user["username"])
+
+        session["user"] = {
+            "id": updated_user["id"],
+            "username": updated_user["username"],
+            "address": updated_user["address"],
+            "plate": updated_user["plate"]
+        }
+
+        return redirect("/profile")
+
+    return render_template("profile.html", user=user)

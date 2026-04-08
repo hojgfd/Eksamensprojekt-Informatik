@@ -17,7 +17,8 @@ def init_db():
         CREATE TABLE IF NOT EXISTS parking (
             id INTEGER PRIMARY KEY,
             plate TEXT,
-            date TEXT
+            date TEXT,
+            user_id INTEGER
         )
     """)
 
@@ -37,6 +38,10 @@ def init_db():
                      TEXT,
                      address
                      TEXT
+                     UNIQUE,
+                     plate
+                     TEXT
+                     UNIQUE
                  )
                  """)
 

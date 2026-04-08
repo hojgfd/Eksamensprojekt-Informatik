@@ -29,11 +29,12 @@ def reservation():
 
     tomorrow = (date.today() + timedelta(days=1)).isoformat()
 
-    # Fjern gamle reservationers
+    # Fjern gamle reservationer
     db.execute("""
                UPDATE parking
-               SET plate = NULL,
-                   date  = NULL
+               SET plate   = NULL,
+                   date    = NULL,
+                   user_id = NULL
                WHERE date < ?
                """, (tomorrow,))
     db.commit()
@@ -62,32 +63,44 @@ def reservation():
 
 @app.route("/reservation/reserver", methods=["POST"])
 def reserve():
-    plate = request.form.get("plade")
+    if "user" not in session:
+        return redirect("/login")
 
+    user = session["user"]
+    user_id = user["id"]
+
+    plate = request.form.get("plade")
     tomorrow = (date.today() + timedelta(days=1)).isoformat()
 
     db = get_db()
 
-    # Find første ledige plads til i morgen
+    # Fjern gammel reservation fra samme bruger
+    db.execute("""
+        UPDATE parking
+        SET plate = NULL,
+            date = NULL,
+            user_id = NULL
+        WHERE user_id = ?
+    """, (user_id,))
+
+    # Find første ledige plads
     spot = db.execute(f"""
         SELECT id FROM parking
         WHERE id NOT IN ({",".join(map(str, blocked_spots))})
-        AND (plate IS NULL OR date != ?)
+        AND (date IS NULL OR date != ?)
         ORDER BY id ASC
         LIMIT 1
     """, (tomorrow,)).fetchone()
 
+    # Lav ny reservation
     if spot:
-        # Slet evt. gammel reservation på samme plads
-        db.execute("DELETE FROM parking WHERE id = ? AND date = ?", (spot["id"], tomorrow))
-
-        # Indsæt ny reservation
         db.execute("""
-                   UPDATE parking
-                   SET plate = ?,
-                       date  = ?
-                   WHERE id = ?
-                   """, (plate, tomorrow, spot["id"]))
+            UPDATE parking
+            SET plate = ?,
+                date = ?,
+                user_id = ?
+            WHERE id = ?
+        """, (plate, tomorrow, user_id, spot["id"]))
         db.commit()
 
     db.close()
