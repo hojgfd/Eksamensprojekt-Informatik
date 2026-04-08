@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, session
-import os
+import os, time
 from datetime import date, timedelta
 from database import get_db, init_db
 from auth import auth
@@ -119,17 +119,25 @@ def overblik():
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    if 'image' not in request.files:
-        return 'no image part'
+    if 'image' in request.files:
+        file = request.files['image']
+        if file.filename == '':
+            return 'no selected file'
 
-    file = request.files['image']
+        file.save(f'server/uploads/images/image-{int(time.time())}{file.filename[file.filename.rfind("."):]}')
 
-    if file.filename == '':
-        return 'no selected file'
+        return 'File uploaded successfully'
 
-    file.save(f'server/uploads/{file.filename}')
+    if 'count' in request.files:
+        file = request.files['count']
+        if file.filename == '':
+            return 'no selected file'
 
-    return 'File uploaded successfully'
+        file.save(f'server/uploads/counts/count-{int(time.time())}.csv')
+
+        return 'File uploaded successfully'
+
+    return 'no image or count detected'
 
 
 @app.route('/get_schedule')
