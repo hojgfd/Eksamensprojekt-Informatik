@@ -112,6 +112,10 @@ def reserve():
 def upload_form():
     return render_template("upload_form.html")
 
+@app.route('/overblik')
+def upload_form():
+    return render_template("overblik.html")
+
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
