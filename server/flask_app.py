@@ -113,7 +113,7 @@ def upload_form():
     return render_template("upload_form.html")
 
 @app.route('/overblik')
-def upload_form():
+def overblik():
     return render_template("overblik.html")
 
 
