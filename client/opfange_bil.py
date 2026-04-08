@@ -10,9 +10,9 @@ import csv
 model = YOLO("yolo26n.pt")
 confidence_threshold = 0.3
 
-vs = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+vs = cv2.VideoCapture(1, cv2.CAP_DSHOW)
 assert vs.isOpened()
-
+vs.set(cv2.CAP_PROP_BUFFERSIZE, 1)
 
 def run_classification_model(model, frame, confidence_threshold):
     result = model(frame)[0]

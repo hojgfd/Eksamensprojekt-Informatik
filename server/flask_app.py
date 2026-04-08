@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for
-import os
+import os, time
 from database import get_db, init_db
 
 parking_spots = {i: None for i in range(1, 19)} # 12 spots
@@ -25,17 +25,25 @@ def upload_form():
 # curl.exe -X POST https://oscar1234.pythonanywhere.com/upload -F "image=@C:\Users\agc\Desktop\angry_bird_realistisk.jpg"
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    if 'image' not in request.files:
-        return 'no image part'
+    if 'image' in request.files:
+        file = request.files['image']
+        if file.filename == '':
+            return 'no selected file'
 
-    file = request.files['image']
+        file.save(f'server/uploads/images/image-{int(time.time())}{file.filename[file.filename.rfind("."):]}')
 
-    if file.filename == '':
-        return 'no selected file'
+        return 'File uploaded successfully'
 
-    file.save(f'server/uploads/{file.filename}')
+    if 'count' in request.files:
+        file = request.files['count']
+        if file.filename == '':
+            return 'no selected file'
 
-    return 'File uploaded successfully'
+        file.save(f'server/uploads/counts/count-{int(time.time())}.csv')
+
+        return 'File uploaded successfully'
+
+    return 'no image or count detected'
 
 
 
