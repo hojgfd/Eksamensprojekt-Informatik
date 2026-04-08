@@ -20,6 +20,10 @@ def hello_world():
 def upload_form():
     return render_template("upload_form.html")
 
+@app.route('/overblik')
+def upload_form():
+    return render_template("overblik.html")
+
 # eksempel for curl:
 # curl.exe -X POST http://127.0.0.1:5000/upload -F "image=@C:\Users\agc\Desktop\angry_bird_realistisk.jpg"
 # curl.exe -X POST https://oscar1234.pythonanywhere.com/upload -F "image=@C:\Users\agc\Desktop\angry_bird_realistisk.jpg"
