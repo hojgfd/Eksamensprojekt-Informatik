@@ -26,22 +26,12 @@ def init_db():
     conn.execute("""
                  CREATE TABLE IF NOT EXISTS users
                  (
-                     id
-                     INTEGER
-                     PRIMARY
-                     KEY
-                     AUTOINCREMENT,
-                     username
-                     TEXT
-                     UNIQUE,
-                     password
-                     TEXT,
-                     address
-                     TEXT
-                     UNIQUE,
-                     plate
-                     TEXT
-                     UNIQUE
+                     id INTEGER PRIMARY KEY AUTOINCREMENT,
+                     username TEXT UNIQUE,
+                     password TEXT,
+                     address TEXT UNIQUE,
+                     distance INTEGER UNIQUE,
+                     plate TEXT UNIQUE
                  )
                  """)
 

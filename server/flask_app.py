@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, session
+from flask import Flask, render_template, request, redirect, session, jsonify
 import os
 from datetime import date, timedelta
 from database import get_db, init_db
@@ -83,7 +83,29 @@ def reserve():
         WHERE user_id = ?
     """, (user_id,))
 
-    # Find første ledige plads
+    # Hent alle brugere sorteret efter distance
+    users = db.execute("""
+        SELECT id, distance
+        FROM users
+        ORDER BY distance DESC
+    """).fetchall()
+
+    max_spots = 18 - len(blocked_spots)
+    top_users = [u["id"] for u in users[:max_spots]]
+
+    #  Hvor mange pladser er allerede taget?
+    taken_spots = db.execute("""
+        SELECT COUNT(*) as count FROM parking
+        WHERE date = ?
+    """, (tomorrow,)).fetchone()["count"]
+
+    # Hvis brugeren ikke er i top distance til skolen og der stadig ikke er reserverede pladser
+    if user_id not in top_users and taken_spots < max_spots:
+        db.commit()
+        db.close()
+        return "Pladserne er reserveret til brugere med længere afstand (prøv igen senere)"
+
+    # Find ledig plads
     spot = db.execute(f"""
         SELECT id FROM parking
         WHERE id NOT IN ({",".join(map(str, blocked_spots))})
@@ -92,7 +114,7 @@ def reserve():
         LIMIT 1
     """, (tomorrow,)).fetchone()
 
-    # Lav ny reservation
+    # Lav reservation hvis muligt
     if spot:
         db.execute("""
             UPDATE parking
@@ -106,7 +128,6 @@ def reserve():
     db.close()
 
     return redirect("/reservation")
-
 
 @app.route('/upload_form')
 def upload_form():
