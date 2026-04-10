@@ -6,10 +6,19 @@
 </head>
 <body>
     <h2>File Upload</h2>
-    <form method="post" enctype="multipart/form-data" action="/upload">
-        <input type="file" name="file">
-        <button type="submit">Upload</button>
-    </form>
-
+    <div style="border: 1px solid black;">
+        <p>Image</p>
+        <form method="post" enctype="multipart/form-data" action="/upload">
+            <input type="file" name="image">
+            <button type="submit">Upload</button>
+        </form>
+    </div>
+    <div style="border: 1px solid black;">
+        <p>Count</p>
+        <form method="post" enctype="multipart/form-data" action="/upload">
+            <input type="file" name="count">
+            <button type="submit">Upload</button>
+        </form>
+    </div>
 </body>
 </html>
