@@ -114,7 +114,28 @@ def upload_form():
 
 @app.route('/overblik')
 def overblik():
-    return render_template("overblik.html")
+    db = get_db()
+
+    spots = db.execute("""
+        SELECT *
+        FROM parking
+        ORDER BY id ASC
+    """).fetchall()
+
+    total_spots = len(spots)
+
+    today = date.today()
+
+    db.close()
+
+    return render_template(
+        "overblik.html",
+        spots=spots,
+        occupied_spots=blocked_spots,
+        total_spots=total_spots,
+        today=today
+
+    )
 
 
 @app.route('/upload', methods=['POST'])
