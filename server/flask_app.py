@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, session
-import os
+import os, time
 from datetime import date, timedelta
 from database import get_db, init_db
 from auth import auth
@@ -137,20 +137,29 @@ def overblik():
 
     )
 
-
+# eksempel for curl:
+# curl.exe -X POST http://127.0.0.1:5000/upload -F "image=@C:\Users\agc\Desktop\angry_bird_realistisk.jpg"
+# curl.exe -X POST https://oscar1234.pythonanywhere.com/upload -F "image=@C:\Users\agc\Desktop\angry_bird_realistisk.jpg"
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    if 'image' not in request.files:
-        return 'no image part'
+    if 'image' in request.files:
+        file = request.files['image']
+        if file.filename == '':
+            return 'no selected file'
 
-    file = request.files['image']
+        file.save(f'server/uploads/images/image-{int(time.time())}{file.filename[file.filename.rfind("."):]}')
 
-    if file.filename == '':
-        return 'no selected file'
+    if 'count' in request.files:
+        file = request.files['count']
+        if file.filename == '':
+            return 'no selected file'
 
-    file.save(f'server/uploads/{file.filename}')
+        file.save(f'server/uploads/counts/count-{int(time.time())}.csv')
 
-    return 'File uploaded successfully'
+    if 'count' in request.files or 'image' in request.files:
+        return 'File uploaded successfully'
+    else:
+        return 'no image or count detected'
 
 
 @app.route('/get_schedule')
