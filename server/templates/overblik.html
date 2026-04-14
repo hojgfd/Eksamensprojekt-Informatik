@@ -5,27 +5,30 @@
     <title>Title</title>
 </head>
 <body>
-    <u>Overblik over reservede pladser</u>
+    <h1>Overblik over reservede pladser</h1>
 
-<label for="dates">Choose a date:</label>
+    <img src="server/uploads/Overblik.jpg" width="500" height="300">
 
-<div id="current_date"></div>
+    <label for="dates">Choose a date:</label>
 
-<select id="dates" name="dates">
-  <option value="23-02-2026">Mandag 23-02-2026</option>
-  <option value="23-02-2026">Mandag 23-02-2026</option>
-  <option value="23-02-2026">Mandag 23-02-2026</option>
-</select>
+    <div id="current_date"></div>
 
-<p>Total spots: {{ total_spots }}</p>
+    <select id="dates" name="dates">
+        <option value="23-02-2026">Mandag 23-02-2026</option>
+        <option value="23-02-2026">Mandag 23-02-2026</option>
+        <option value="23-02-2026">Mandag 23-02-2026</option>
+    </select>
 
-<p>Spots: {{spots}}</p>
+    <p>Total spots: {{ total_spots }}</p>
 
-<div>Reserveret: {{spots} - {occupied_spots}}</div>
+    <div>Reserveret: {{0}}</div>
 
-<div>Ikke Reserveret: {{occupied_spots}}</div>
+    <div>Ikke Reserveret: {{total_spots}}</div>
 
-<div>Kan Ikke Reserveres: 76</div>
+    <div>Kan Ikke Reserveres: {{unavailable_spots}}</div>
+
+    <div>Overblik:</div>
+    {{ fig }}
 
 </body>
 </html>

@@ -123,6 +123,7 @@ def overblik():
     """).fetchall()
 
     total_spots = len(spots)
+    total_blocked_spots = len(blocked_spots)
 
     today = date.today()
 
@@ -131,8 +132,9 @@ def overblik():
     return render_template(
         "overblik.html",
         spots=spots,
-        occupied_spots=blocked_spots,
+        #occupied_spots=blocked_spots,
         total_spots=total_spots,
+        unavailable_spots=total_blocked_spots,
         today=today
 
     )
