@@ -6,14 +6,6 @@ import numpy as np
 from collections import defaultdict
 import csv
 
-# n, s, m, l, x (sorteret efter mindste til største model)
-model = YOLO("yolo26n.pt")
-confidence_threshold = 0.3
-
-vs = cv2.VideoCapture(1, cv2.CAP_DSHOW)
-assert vs.isOpened()
-vs.set(cv2.CAP_PROP_BUFFERSIZE, 1)
-
 def run_classification_model(model, frame, confidence_threshold):
     result = model(frame)[0]
     counter = defaultdict(int)
@@ -46,18 +38,29 @@ def save_count(path, counter: dict):
         writer.writerow(fields)
         writer.writerows(counter_sorted)
 
-while True:
-    vs.read()
-    ret, frame = vs.read()
 
-    annotated_frame, counter = run_classification_model(model, frame, confidence_threshold)
-    save_image("test/frame.jpg", annotated_frame)
-    save_count("test/count.csv", counter)
+if __name__ == '__main__':
+    # n, s, m, l, x (sorteret efter mindste til største model)
+    model = YOLO("yolo26n.pt")
+    confidence_threshold = 0.3
 
-    cv2.putText(annotated_frame, f"{dict(counter)}", (20, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.50, (255, 255, 255), 1)
-    cv2.imshow("YOLO", annotated_frame)
+    vs = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+    # vs = cv2.VideoCapture(0, cv2.CAP_V4L2) # til raspberry pi
+    assert vs.isOpened()
+    vs.set(cv2.CAP_PROP_BUFFERSIZE, 1)
 
-    if cv2.waitKey(0) & 0xFF == ord("q"):
-        break
+    while True:
+        vs.read()
+        ret, frame = vs.read()
 
-cv2.destroyAllWindows()
+        annotated_frame, counter = run_classification_model(model, frame, confidence_threshold)
+        save_image("test/frame.jpg", annotated_frame)
+        save_count("test/count.csv", counter)
+
+        cv2.putText(annotated_frame, f"{dict(counter)}", (20, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.50, (255, 255, 255), 1)
+        cv2.imshow("YOLO", annotated_frame)
+
+        if cv2.waitKey(0) & 0xFF == ord("q"):
+            break
+
+    cv2.destroyAllWindows()
