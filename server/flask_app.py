@@ -116,7 +116,9 @@ def upload_form():
 def overblik():
     return render_template("overblik.html")
 
-
+# eksempel for curl:
+# curl.exe -X POST http://127.0.0.1:5000/upload -F "image=@C:\Users\agc\Desktop\angry_bird_realistisk.jpg"
+# curl.exe -X POST https://oscar1234.pythonanywhere.com/upload -F "image=@C:\Users\agc\Desktop\angry_bird_realistisk.jpg"
 @app.route('/upload', methods=['POST'])
 def upload_file():
     if 'image' in request.files:
@@ -126,8 +128,6 @@ def upload_file():
 
         file.save(f'server/uploads/images/image-{int(time.time())}{file.filename[file.filename.rfind("."):]}')
 
-        return 'File uploaded successfully'
-
     if 'count' in request.files:
         file = request.files['count']
         if file.filename == '':
@@ -135,9 +135,10 @@ def upload_file():
 
         file.save(f'server/uploads/counts/count-{int(time.time())}.csv')
 
+    if 'count' in request.files or 'image' in request.files:
         return 'File uploaded successfully'
-
-    return 'no image or count detected'
+    else:
+        return 'no image or count detected'
 
 
 @app.route('/get_schedule')
