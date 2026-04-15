@@ -1,10 +1,6 @@
 from database import get_db
 from nominatim import distance_coord_to_string
 
-
-
-
-
 def create_user(username, password, address, distance, plate):
     db = get_db()
     db.execute(
