@@ -4,6 +4,7 @@ from datetime import date, timedelta
 from database import get_db, init_db
 from auth import auth
 import random as rnd
+from datetime import datetime, timedelta
 
 parking_spots = {i: None for i in range(1, 19)}
 blocked_spots = {16, 17, 18}
@@ -28,17 +29,28 @@ def live_data():
     init_db()
     db = get_db()
 
-    row = db.execute(
-        "SELECT spots_left, spots_taken FROM liveparkingdata WHERE id = ?",
-        (0,)
-    ).fetchone()
+    rows = db.execute(
+        "SELECT spots_left, spots_taken, timestamp FROM liveparkingdata ORDER BY timestamp ASC"
+    ).fetchall()
 
     db.close()
 
+    # Lav lister til grafen
+    timestamps = [row["timestamp"] for row in rows]
+    spots_left_list = [row["spots_left"] for row in rows]
+    spots_taken_list = [row["spots_taken"] for row in rows]
+
+    # Udtræk dato (YYYY-MM-DD)
+    dates = sorted(list(set([t.split(" ")[0] for t in timestamps])))
+
     return render_template(
         "livedata.html",
-        spots_left=row["spots_left"],
-        spots_taken=row["spots_taken"]
+        spots_left=spots_left_list[-1] if rows else 0,
+        spots_taken=spots_taken_list[-1] if rows else 0,
+        timestamps=timestamps,
+        spots_left_list=spots_left_list,
+        spots_taken_list=spots_taken_list,
+        dates=dates
     )
 @app.route('/reservation', methods=["GET", "POST"])
 def reservation():
@@ -210,13 +222,13 @@ def update_live_data():
     spots_left = data.get("spots_left")
     spots_taken = data.get("spots_taken")
 
-    if not spots_left and not spots_taken:
+    if spots_left is None and spots_taken is None:
         return jsonify({"error": "Missing spots_left and/or spots_taken"}), 400
 
     init_db()
     db = get_db()
 
-    db.execute("UPDATE liveparkingdata SET spots_left = ?, spots_taken = ? WHERE id = ?", (spots_left, spots_taken, 0))
+    db.execute("INSERT INTO liveparkingdata (spots_left, spots_taken) VALUES (?, ?)", (spots_left, spots_taken))
 
     db.commit()
     db.close()

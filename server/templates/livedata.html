@@ -2,7 +2,6 @@
 <html>
 <head>
     <title>Live data</title>
-    <meta http-equiv="refresh" content="1">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -48,6 +47,82 @@
         }
     </style>
 </head>
+
+<label for="dateSelect">Vælg dato:</label>
+<select id="dateSelect">
+    <option value="all">Alle</option>
+    {% for d in dates %}
+        <option value="{{ d }}">{{ d }}</option>
+    {% endfor %}
+</select>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<canvas id="myChart" width="600" height="300"></canvas>
+
+<script>
+const allTimestamps = {{ timestamps | tojson }};
+const allSpotsLeft = {{ spots_left_list | tojson }};
+const allSpotsTaken = {{ spots_taken_list | tojson }};
+
+let chart;
+
+function filterData(selectedDate) {
+    let labels = [];
+    let left = [];
+    let taken = [];
+
+    for (let i = 0; i < allTimestamps.length; i++) {
+        const date = allTimestamps[i].split(" ")[0];
+
+        if (selectedDate === "all" || date === selectedDate) {
+            labels.push(new Date(allTimestamps[i]).toLocaleTimeString());
+            left.push(allSpotsLeft[i]);
+            taken.push(allSpotsTaken[i]);
+        }
+    }
+
+    return { labels, left, taken };
+}
+
+function updateChart(selectedDate) {
+    const data = filterData(selectedDate);
+
+    if (chart) {
+        chart.destroy();
+    }
+
+    const ctx = document.getElementById('myChart').getContext('2d');
+
+    chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.labels,
+            datasets: [
+                {
+                    label: 'Pladser tilbage',
+                    data: data.left,
+                    borderWidth: 2
+                },
+                {
+                    label: 'Pladser taget',
+                    data: data.taken,
+                    borderWidth: 2
+                }
+            ]
+        }
+    });
+}
+
+// Når dropdown ændres
+document.getElementById("dateSelect").addEventListener("change", function() {
+    updateChart(this.value);
+});
+
+// Start med "alle"
+updateChart("all");
+</script>
+
 <body>
 
 <h1>Live data</h1>

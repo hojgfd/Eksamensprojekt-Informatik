@@ -28,7 +28,8 @@ def init_db():
                  (
                      id INTEGER PRIMARY KEY,
                      spots_left INTEGER,
-                     spots_taken INTEGER
+                     spots_taken INTEGER,
+                     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
                  )
                  """)
 
