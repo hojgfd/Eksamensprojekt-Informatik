@@ -154,7 +154,30 @@ def upload_form():
 
 @app.route('/overblik')
 def overblik():
-    return render_template("overblik.html")
+    db = get_db()
+
+    spots = db.execute("""
+        SELECT *
+        FROM parking
+        ORDER BY id ASC
+    """).fetchall()
+
+    total_spots = len(spots)
+    total_blocked_spots = len(blocked_spots)
+
+    today = date.today()
+
+    db.close()
+
+    return render_template(
+        "overblik.html",
+        spots=spots,
+        #occupied_spots=blocked_spots,
+        total_spots=total_spots,
+        unavailable_spots=total_blocked_spots,
+        today=today
+
+    )
 
 # eksempel for curl:
 # curl.exe -X POST http://127.0.0.1:5000/upload -F "image=@C:\Users\agc\Desktop\angry_bird_realistisk.jpg"
