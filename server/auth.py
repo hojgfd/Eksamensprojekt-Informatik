@@ -1,7 +1,10 @@
 from flask import Blueprint, render_template, request, redirect, session
 from models import create_user, get_user, update_user
-
+from nominatim import distance_coord_to_string
 auth = Blueprint("auth", __name__)
+
+lat_skole = 56.156277
+long_skole = 10.187640
 
 @auth.route("/register", methods=["GET", "POST"])
 def register():
@@ -9,9 +12,11 @@ def register():
         username = request.form["username"]
         password = request.form["password"]
         address = request.form["address"]
+        distance = distance_coord_to_string(lat_skole, long_skole, address) # DEBUG
         plate = request.form["plate"]
 
-        create_user(username, password, address, plate)
+        print(f"Distance fra addresse til skolen: {distance}")
+        create_user(username, password, address, distance, plate)
         return redirect("/login")
 
     return render_template("register.html")
@@ -50,9 +55,12 @@ def profile():
 
     if request.method == "POST":
         address = request.form["address"]
+        distance = distance_coord_to_string(lat_skole, long_skole, address)
         plate = request.form["plate"]
 
-        update_user(user["id"], address, plate)
+        print(f"Distance fra addresse til skolen: {distance}") # DEBUG
+
+        update_user(user["id"], address, distance, plate)
 
         # reload bruger fra DB
         updated_user = get_user(user["username"])

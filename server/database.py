@@ -12,7 +12,7 @@ def get_db():
 def init_db():
     conn = get_db()
 
-    #parking table
+    #parking revervation table
     conn.execute("""
         CREATE TABLE IF NOT EXISTS parking (
             id INTEGER PRIMARY KEY,
@@ -22,26 +22,26 @@ def init_db():
         )
     """)
 
+    #live parking data table
+    conn.execute("""
+                 CREATE TABLE IF NOT EXISTS liveparkingdata
+                 (
+                     id INTEGER PRIMARY KEY,
+                     spots_left INTEGER,
+                     spots_taken INTEGER
+                 )
+                 """)
+
     #account table
     conn.execute("""
                  CREATE TABLE IF NOT EXISTS users
                  (
-                     id
-                     INTEGER
-                     PRIMARY
-                     KEY
-                     AUTOINCREMENT,
-                     username
-                     TEXT
-                     UNIQUE,
-                     password
-                     TEXT,
-                     address
-                     TEXT
-                     UNIQUE,
-                     plate
-                     TEXT
-                     UNIQUE
+                     id INTEGER PRIMARY KEY AUTOINCREMENT,
+                     username TEXT UNIQUE,
+                     password TEXT,
+                     address TEXT UNIQUE,
+                     distance INTEGER UNIQUE,
+                     plate TEXT UNIQUE
                  )
                  """)
 
@@ -52,5 +52,7 @@ def init_db():
             (i,)
         )
 
+    # indsæt et element i live data tabellen
+    conn.execute("INSERT OR IGNORE INTO liveparkingdata (id, spots_left, spots_taken) VALUES (0, NULL, NULL)")
     conn.commit()
     conn.close()

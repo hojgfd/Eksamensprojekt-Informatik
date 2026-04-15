@@ -1,8 +1,9 @@
-from flask import Flask, render_template, request, redirect, session
+from flask import Flask, render_template, request, redirect, session, jsonify
 import os, time
 from datetime import date, timedelta
 from database import get_db, init_db
 from auth import auth
+import random as rnd
 
 parking_spots = {i: None for i in range(1, 19)}
 blocked_spots = {16, 17, 18}
@@ -22,6 +23,23 @@ def home():
     init_db()
     return render_template("index.html")
 
+@app.route('/live_data')
+def live_data():
+    init_db()
+    db = get_db()
+
+    row = db.execute(
+        "SELECT spots_left, spots_taken FROM liveparkingdata WHERE id = ?",
+        (0,)
+    ).fetchone()
+
+    db.close()
+
+    return render_template(
+        "livedata.html",
+        spots_left=row["spots_left"],
+        spots_taken=row["spots_taken"]
+    )
 @app.route('/reservation', methods=["GET", "POST"])
 def reservation():
     init_db()
@@ -83,7 +101,29 @@ def reserve():
         WHERE user_id = ?
     """, (user_id,))
 
-    # Find første ledige plads
+    # Hent alle brugere sorteret efter distance
+    users = db.execute("""
+        SELECT id, distance
+        FROM users
+        ORDER BY distance DESC
+    """).fetchall()
+
+    max_spots = 18 - len(blocked_spots)
+    top_users = [u["id"] for u in users[:max_spots]]
+
+    #  Hvor mange pladser er allerede taget?
+    taken_spots = db.execute("""
+        SELECT COUNT(*) as count FROM parking
+        WHERE date = ?
+    """, (tomorrow,)).fetchone()["count"]
+
+    # Hvis brugeren ikke er i top distance til skolen og der stadig ikke er reserverede pladser
+    if user_id not in top_users and taken_spots < max_spots:
+        db.commit()
+        db.close()
+        return "Pladserne er reserveret til brugere med længere afstand (prøv igen senere)"
+
+    # Find ledig plads
     spot = db.execute(f"""
         SELECT id FROM parking
         WHERE id NOT IN ({",".join(map(str, blocked_spots))})
@@ -92,7 +132,7 @@ def reserve():
         LIMIT 1
     """, (tomorrow,)).fetchone()
 
-    # Lav ny reservation
+    # Lav reservation hvis muligt
     if spot:
         db.execute("""
             UPDATE parking
@@ -162,6 +202,27 @@ def upload_file():
         return 'File uploaded successfully'
     else:
         return 'no image or count detected'
+
+@app.route('/api/live_data', methods=['POST'])
+def update_live_data():
+    data = request.json
+
+    spots_left = data.get("spots_left")
+    spots_taken = data.get("spots_taken")
+
+    if not spots_left and not spots_taken:
+        return jsonify({"error": "Missing spots_left and/or spots_taken"}), 400
+
+    init_db()
+    db = get_db()
+
+    db.execute("UPDATE liveparkingdata SET spots_left = ?, spots_taken = ? WHERE id = ?", (spots_left, spots_taken, 0))
+
+    db.commit()
+    db.close()
+
+    return jsonify({"status": "ok"})
+
 
 
 @app.route('/get_schedule')
