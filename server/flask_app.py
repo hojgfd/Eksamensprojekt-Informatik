@@ -203,7 +203,7 @@ def upload_file():
     else:
         return 'no image or count detected'
 
-@app.route('/api/livedata', methods=['POST'])
+@app.route('/api/live_data', methods=['POST'])
 def update_live_data():
     data = request.json
 
