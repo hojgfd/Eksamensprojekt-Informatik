@@ -34,8 +34,14 @@ def frame_to_bytes(frame: cv2.Mat) -> bytes:
 
 # -- WebSocket client ---------------------------------------------------------
 
-def send_bytes(request_id, bytes):
-    header = request_id.encode("ascii").ljust(36, b"\x00")
+def send_bytes(ws, request_id, data):
+    try:
+        header = request_id.encode("ascii").ljust(36, b"\x00")
+        ws.send(bytes(header) + data, websocket.ABNF.OPCODE_BINARY)
+        print(f"[ws] sent {len(data):,} bytes")
+    except Exception as exc:
+        print(f"[ws] capture failed: {exc}")
+        ws.send(json.dumps({"error": str(exc), "request_id": request_id}))
 
 def _on_open(ws):
     print("[ws] connected to server")
@@ -53,30 +59,16 @@ def _on_message(ws, message):
     if action == "image":
         request_id = data["request_id"]
         print(f"[ws] capture request  id={request_id}")
-        try:
-            frame = capture_frame()
-            jpeg = frame_to_bytes(frame)
-
-            header = request_id.encode("ascii").ljust(36, b"\x00")
-            ws.send(bytes(header) + jpeg, websocket.ABNF.OPCODE_BINARY)
-            print(f"[ws] sent {len(jpeg):,} bytes")
-        except Exception as exc:
-            print(f"[ws] capture failed: {exc}")
-            ws.send(json.dumps({"error": str(exc), "request_id": request_id}))
+        frame = capture_frame()
+        jpeg = frame_to_bytes(frame)
+        send_bytes(ws, request_id, jpeg)
     elif action == "yolo":
         request_id = data["request_id"]
         print(f"[ws] capture request  id={request_id}")
-        try:
-            frame = capture_frame()
-            annotated_frame, counter = run_classification_model(model, frame, confidence_threshold)
-
-            jpeg = frame_to_bytes(annotated_frame)
-            header = request_id.encode("ascii").ljust(36, b"\x00")
-            ws.send(bytes(header) + jpeg, websocket.ABNF.OPCODE_BINARY)
-            print(f"[ws] sent {len(jpeg):,} bytes")
-        except Exception as exc:
-            print(f"[ws] capture failed: {exc}")
-            ws.send(json.dumps({"error": str(exc), "request_id": request_id}))
+        frame = capture_frame()
+        annotated_frame, counter = run_classification_model(model, frame, confidence_threshold)
+        jpeg = frame_to_bytes(annotated_frame)
+        send_bytes(ws, request_id, jpeg)
     elif action == "yolo_dict":
         request_id = data["request_id"]
         print(f"[ws] capture request  id={request_id}")
