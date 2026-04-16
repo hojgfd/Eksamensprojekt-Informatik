@@ -1,15 +1,3 @@
-"""
-server.py — Flask version.
-
-Install:  pip install flask flask-sock
-Run:      python server.py
-
-Endpoints:
-  WS  ws://0.0.0.0:5000/pi       ← Pi connects here
-  GET http://0.0.0.0:5000/status ← check if a Pi is connected
-  GET http://0.0.0.0:5000/capture?timeout=10 ← request a photo (returns JPEG)
-"""
-
 import json
 import threading
 import uuid
@@ -50,6 +38,15 @@ def pi_socket(ws):
                     slot["event"].set()   # wake up the waiting /capture thread
 
             elif isinstance(message, str):
+                data = json.loads(message)
+                request_id = data["request_id"]
+                data.pop("request_id")
+                with _lock:
+                    slot = _pending.get(request_id)
+                if slot:
+                    slot["data"] = data
+                    slot["event"].set()
+
                 print(f"[ws] Pi says: {message}")
 
     except Exception as exc:
@@ -68,24 +65,40 @@ def status():
         connected = _pi_ws is not None
     return jsonify({"pi_connected": connected})
 
-
 @app.get("/capture")
 def capture():
     timeout = float(request.args.get("timeout", 10))
 
+    result = send_message(_lock, "yolo", timeout)
+    if result:
+        return Response(result, mimetype="image/jpeg")
+    else:
+        return jsonify({"error": "No Pi connected or did not respond in time"}), 500
+
+@app.get("/dict")
+def dict():
+    timeout = float(request.args.get("timeout", 10))
+
+    result = send_message(_lock, "yolo_dict", timeout)
+    if result:
+        return jsonify(result)
+    else:
+        return jsonify({"error": "No Pi connected or did not respond in time"}), 500
+
+def send_message(_lock, action:str, timeout:float=10):
     with _lock:
         ws = _pi_ws
     if ws is None:
-        return jsonify({"error": "No Pi connected"}), 503
+        print("No Pi connected")
+        return False
 
-    request_id = str(uuid.uuid4())   # 36-char UUID
+    request_id = str(uuid.uuid4())
     slot = {"event": threading.Event(), "data": None}
 
     with _lock:
         _pending[request_id] = slot
 
-    # Ask the Pi to take a photo
-    ws.send(json.dumps({"action": "capture", "request_id": request_id}))
+    ws.send(json.dumps({"action": action, "request_id": request_id}))
 
     # Block this thread until the Pi replies (or timeout)
     arrived = slot["event"].wait(timeout=timeout)
@@ -94,10 +107,10 @@ def capture():
         _pending.pop(request_id, None)
 
     if not arrived or slot["data"] is None:
-        return jsonify({"error": "Pi did not respond in time"}), 504
+        print("Pi did not respond in time")
+        return False
 
-    return Response(slot["data"], mimetype="image/jpeg")
-
+    return slot["data"]
 
 # ── run ───────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
