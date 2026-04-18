@@ -311,7 +311,7 @@ def capture():
         return jsonify({"error": "No Pi connected or did not respond in time"}), 500
 
 @app.get("/dict")
-def dict():
+def yolo_dict():
     timeout = float(request.args.get("timeout", 10))
 
     result = send_message(pi_lock, "yolo_dict", timeout)
@@ -320,8 +320,8 @@ def dict():
     else:
         return jsonify({"error": "No Pi connected or did not respond in time"}), 500
 
-def send_message(_lock, action:str, timeout:float=10):
-    with _lock:
+def send_message(pi_lock, action:str, timeout:float=10):
+    with pi_lock:
         ws = pi_ws
     if ws is None:
         print("No Pi connected")
@@ -330,7 +330,7 @@ def send_message(_lock, action:str, timeout:float=10):
     request_id = str(uuid.uuid4())
     slot = {"event": threading.Event(), "data": None}
 
-    with _lock:
+    with pi_lock:
         pending[request_id] = slot
 
     ws.send(json.dumps({"action": action, "request_id": request_id}))
@@ -338,7 +338,7 @@ def send_message(_lock, action:str, timeout:float=10):
     # Block this thread until the Pi replies (or timeout)
     arrived = slot["event"].wait(timeout=timeout)
 
-    with _lock:
+    with pi_lock:
         pending.pop(request_id, None)
 
     if not arrived or slot["data"] is None:
@@ -346,4 +346,34 @@ def send_message(_lock, action:str, timeout:float=10):
         return None
 
     return slot["data"]
+
+def car_updater():
+    time_wait = 60 * 10
+    last_time = time.time() - time_wait + 10
+    reconnection_delay = 10
+
+    while True:
+        if time.time() > last_time + time_wait:
+            last_time = time.time()
+            print("sending message")
+            yolo_json: dict = send_message(pi_lock, "yolo_dict", 10)
+
+            if yolo_json:
+                db = get_db()
+                spots_taken = yolo_json.get("car", 0)
+
+                db.execute("INSERT INTO liveparkingdata (spots_left, spots_taken) VALUES (?, ?)",(30 - spots_taken, spots_taken))
+
+                db.commit()
+                db.close()
+            else:
+                with pi_lock:
+                    ws = pi_ws
+                if ws is None:
+                    # No Pi connected og try again after reconnection delay
+                    last_time = time.time() - time_wait + reconnection_delay
+
+car_updater_thread = threading.Thread(target=car_updater)
+car_updater_thread.start()
+print("started car_updater thread")
 
