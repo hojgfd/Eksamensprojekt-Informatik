@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, session, jsonify
+from flask import Flask, render_template, request, redirect, session, jsonify, Response
 import os, time
 from datetime import date, timedelta
 from database import get_db, init_db
@@ -6,12 +6,16 @@ from auth import auth
 import random as rnd
 from datetime import datetime, timedelta
 
+import threading, json, uuid
+from flask_sock import Sock
+
 parking_spots = {i: None for i in range(1, 19)}
 blocked_spots = {16, 17, 18}
 
 app = Flask(__name__)
 app.secret_key = "minmegethemmeligenøgle"
 app.register_blueprint(auth)
+sock = Sock(app)
 
 @app.route('/update_server', methods=["GET", "POST"])
 def update():
@@ -236,7 +240,110 @@ def update_live_data():
     return jsonify({"status": "ok"})
 
 
-
 @app.route('/get_schedule')
 def get_schedule():
     return 'Skemamaxxing'
+
+
+# ── shared state (protected by a lock) ────────────────────────────────────────-–—
+pi_lock = threading.Lock()
+pi_ws = None                  # active WebSocket from the Pi
+pending: dict[str, dict] = {} # request_id → {"event": Event, "data": bytes|None}
+
+# WebSocket endpoint (Pi connects here)
+@sock.route("/pi")
+def pi_socket(ws):
+    global pi_ws
+    with pi_lock:
+        pi_ws = ws
+    print("[ws] Pi connected")
+
+    try:
+        while True:
+            message = ws.receive()   # blocks until a message arrives
+            if message is None:
+                break
+
+            if isinstance(message, bytes):
+                # Header: first 36 bytes = request_id (ASCII), rest = JPEG
+                request_id = message[:36].decode("ascii").rstrip("\x00")
+                image_bytes = message[36:]
+                with pi_lock:
+                    slot = pending.get(request_id)
+                if slot:
+                    slot["data"] = image_bytes
+                    slot["event"].set()   # wake up the waiting /capture thread
+
+            elif isinstance(message, str):
+                data = json.loads(message)
+                request_id = data["request_id"]
+                data.pop("request_id")
+                with pi_lock:
+                    slot = pending.get(request_id)
+                if slot:
+                    slot["data"] = data
+                    slot["event"].set()
+
+                print(f"[ws] Pi says: {message}")
+
+    except Exception as exc:
+        print(f"[ws] connection closed: {exc}")
+    finally:
+        with pi_lock:
+            if pi_ws is ws:
+                pi_ws = None
+        print("[ws] Pi disconnected")
+
+@app.get("/status")
+def status():
+    with pi_lock:
+        connected = pi_ws is not None
+    return jsonify({"pi_connected": connected})
+
+@app.get("/capture")
+def capture():
+    timeout = float(request.args.get("timeout", 10))
+
+    result = send_message(pi_lock, "yolo", timeout)
+    if result:
+        return Response(result, mimetype="image/jpeg")
+    else:
+        return jsonify({"error": "No Pi connected or did not respond in time"}), 500
+
+@app.get("/dict")
+def dict():
+    timeout = float(request.args.get("timeout", 10))
+
+    result = send_message(pi_lock, "yolo_dict", timeout)
+    if result:
+        return jsonify(result)
+    else:
+        return jsonify({"error": "No Pi connected or did not respond in time"}), 500
+
+def send_message(_lock, action:str, timeout:float=10):
+    with _lock:
+        ws = pi_ws
+    if ws is None:
+        print("No Pi connected")
+        return None
+
+    request_id = str(uuid.uuid4())
+    slot = {"event": threading.Event(), "data": None}
+
+    with _lock:
+        pending[request_id] = slot
+
+    ws.send(json.dumps({"action": action, "request_id": request_id}))
+
+    # Block this thread until the Pi replies (or timeout)
+    arrived = slot["event"].wait(timeout=timeout)
+
+    with _lock:
+        pending.pop(request_id, None)
+
+    if not arrived or slot["data"] is None:
+        print("Pi did not respond in time")
+        return None
+
+    return slot["data"]
+
