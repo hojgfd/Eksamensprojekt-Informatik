@@ -373,7 +373,20 @@ def car_updater():
                     # No Pi connected og try again after reconnection delay
                     last_time = time.time() - time_wait + reconnection_delay
 
-car_updater_thread = threading.Thread(target=car_updater)
+            t = time.localtime()
+
+            seconds = t.tm_hour * 3600 + t.tm_min * 60 + t.tm_sec
+            minutes = seconds // 60
+            hours = seconds // 3600
+
+            if hours > 7.5 and hours < 8.75: # 7:30-8:45
+                time_wait = 60
+            elif hours > 8.75 and hours < 16:
+                time_wait = 60*10
+            elif (hours > 16 and hours < 24) or (hours > 0 and hours < 7.5):
+                time_wait = 60*30
+
+car_updater_thread = threading.Thread(target=car_updater, daemon=True)
 car_updater_thread.start()
 print("started car_updater thread")
 
