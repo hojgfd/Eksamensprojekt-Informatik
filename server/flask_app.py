@@ -349,13 +349,12 @@ def send_message(pi_lock, action:str, timeout:float=10):
 
 def car_updater():
     time_wait = 60 * 10
-    last_time = time.time() - time_wait + 10
+    last_time = time.time()
     reconnection_delay = 10
 
     while True:
         if time.time() > last_time + time_wait:
             last_time = time.time()
-            print("sending message")
             yolo_json: dict = send_message(pi_lock, "yolo_dict", 10)
 
             if yolo_json:
@@ -376,8 +375,8 @@ def car_updater():
             t = time.localtime()
 
             seconds = t.tm_hour * 3600 + t.tm_min * 60 + t.tm_sec
-            minutes = seconds // 60
-            hours = seconds // 3600
+            minutes = seconds / 60
+            hours = seconds / 3600
 
             if hours > 7.5 and hours < 8.75: # 7:30-8:45
                 time_wait = 60
@@ -389,4 +388,3 @@ def car_updater():
 car_updater_thread = threading.Thread(target=car_updater, daemon=True)
 car_updater_thread.start()
 print("started car_updater thread")
-
