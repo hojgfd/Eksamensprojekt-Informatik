@@ -347,13 +347,15 @@ def send_message(pi_lock, action:str, timeout:float=10):
 
     return slot["data"]
 
+is_car_updater_active = False
 def car_updater():
     time_wait = 60 * 10
     last_time = time.time()
     reconnection_delay = 10
+    global is_car_updater_active
 
     while True:
-        if time.time() > last_time + time_wait:
+        if time.time() > last_time + time_wait and is_car_updater_active:
             last_time = time.time()
             yolo_json: dict = send_message(pi_lock, "yolo_dict", 10)
 
@@ -387,4 +389,10 @@ def car_updater():
 
 car_updater_thread = threading.Thread(target=car_updater, daemon=True)
 car_updater_thread.start()
-print("started car_updater thread")
+
+@app.get("/car_updater")
+def car_updater_toggle():
+    global is_car_updater_active
+    is_car_updater_active = not is_car_updater_active
+    return jsonify({"car_updater": is_car_updater_active})
+
