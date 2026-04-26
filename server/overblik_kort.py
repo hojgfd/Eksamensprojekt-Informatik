@@ -117,4 +117,4 @@ for spot in spots:
 
 #fig.show()
 
-fig.write_html("overblikFigur.html",include_plotlyjs='cdn')
+fig.write_html("overblik_figur.html",include_plotlyjs='cdn')
