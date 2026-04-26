@@ -2,12 +2,29 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Overblik</title>
 </head>
-<body>
-    <h1>Overblik over reservede pladser</h1>
 
-    <img src="{{url_for('static', filename='Overblik.jpg')}}" />
+<style>
+
+    head{
+        font-family: Arial, sans-serif;
+            text-align: center;
+    }
+
+    body {
+            font-family: Arial, sans-serif;
+            text-align: left;
+        }
+
+
+
+</style>
+
+<body>
+    <h1>Overblik over reserveret pladser</h1>
+
+    <!--<img src="{{url_for('static', filename='Overblik.jpg')}}" /> -->
 
     <label for="dates">Choose a date:</label>
 
@@ -19,16 +36,17 @@
         <option value="23-02-2026">Mandag 23-02-2026</option>
     </select>
 
-    <p>Total spots: {{ total_spots }}</p>
+    <h2>Overblik:</h2>
 
-    <div>Reserveret: {{0}}</div>
+    <p style="color: darkred">Reserveret: {{0}}</p>
 
-    <div>Ikke Reserveret: {{total_spots}}</div>
+    <p style="color: darkgreen">Ikke Reserveret: {{total_spots}}</p>
 
-    <div>Kan Ikke Reserveres: {{unavailable_spots}}</div>
+    <p style="color: darkmagenta;">Kan Ikke Reserveres: {{unavailable_spots}}</p>
 
-    <div>Overblik:</div>
-<iframe src="overblik_figur.html" height="800" width="1200" frameborder="0"></iframe>
+    <iframe src="{{url_for('static', filename='overblik_figur.html')}}" height="800" width="1200" frameborder="1"></iframe>
+
+    <!--<p>Total spots: {{ total_spots }}</p> -->
 
 </body>
 </html>

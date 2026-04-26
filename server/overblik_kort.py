@@ -20,19 +20,26 @@ image = Image.open("static/Parkeringsplads.png")
 # Create figure
 fig = go.Figure()
 
+# Liste over positionerne af pladerne på billedet
+parking_lot_pos_x = [170,235, 300, 365, 430, 495, 560, 625, 690, 755, 100, 165, 230, 295, 360, 425, 490, 555]
+parking_lot_pos_y = [375,375, 375, 375, 375, 375, 375, 375, 375, 375, 60, 60, 60, 60, 60, 60, 60, 60]
+
+rect_width = 50
+rect_height = 100
+
 # Constants
 img_width = 1600
 img_height = 900
 scale_factor = 0.5
+
+# int som holder styr på loopet over pointer der bliver skabt
+i=0
 
 # Hvilke farver og beskrivelser pointerne kan have
 colors = ["red","green","purple"]
 color = colors[0]
 statusser = ["Reserveret","Ikke reserveret","Kan ikke reserveres"]
 status = statusser[0]
-
-# int som holder styr på loopet over pointer der bliver skabt
-i=0
 
 # Add invisible scatter trace.
 # This trace is added to help the autoresize logic work.
@@ -87,34 +94,30 @@ for spot in spots:
             color = colors[1]
             status = statusser[1]
 
-    # Hvis punkterne går for langt ændres y, så de ikke går ud over billedet
-    if 150 + (65 * i) > 750:
-        fig.add_trace(go.Scatter(
-            x=[(150 - 700 + (65 * i))],
-            y=[50],
-            mode='markers',
-            marker=dict(
-                color=color,
-            ),
-            name=status,
-            hoverinfo='name',
-            showlegend=False
-        ))
-    else:
-        fig.add_trace(go.Scatter(
-            x=[170 + (65 * i)],
-            y=[375],
-            mode='markers',
-            marker=dict(
-                color=color,
-            ),
-            name=status,
-            hoverinfo='name',
-            showlegend=False
-        ))
+
+    fig.add_trace(go.Scatter(
+        x=[parking_lot_pos_x[i]],
+        y=[parking_lot_pos_y[i]],
+        mode='markers',
+        marker=dict(
+           color=color,
+        ),
+        name=status,
+        hoverinfo='name',
+        showlegend=False
+    ))
+    fig.add_shape(
+        type="rect",
+        x0=parking_lot_pos_x[i] - rect_width/2,
+        x1=parking_lot_pos_x[i] + rect_width/2,
+        y0=parking_lot_pos_y[i] - rect_height/2,
+        y1=parking_lot_pos_y[i] + rect_height/2,
+        fillcolor=color,
+        line=dict(color="white", width=.5),
+        )
 
     i += 1
 
-#fig.show()
+fig.show()
 
-fig.write_html("overblik_figur.html",include_plotlyjs='cdn')
+#fig.write_html("overblik_figur.html",include_plotlyjs='cdn')
