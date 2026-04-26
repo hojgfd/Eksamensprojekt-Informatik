@@ -1,4 +1,3 @@
-from flask import Flask, render_template, request, redirect, session
 import plotly.graph_objects as go
 from PIL import Image
 from jinja2 import Template
@@ -8,6 +7,7 @@ from flask_app import blocked_spots
 # Få database
 init_db()
 db = get_db()
+
 spots = db.execute("""
                        SELECT *
                        FROM parking
@@ -115,15 +115,6 @@ for spot in spots:
 
     i += 1
 
-fig.show()
+#fig.show()
 
-#output_html_path=r"server/templates/overblik.html"
-#input_template_path = r"server/templates"
-
-#plotly_jinja_data = {"fig":fig.to_html(full_html=False)}
-
-#with open(output_html_path, "w", encoding="utf-8") as output_file:
-#    with open(input_template_path) as template_file:
-#        j2_template = Template(template_file.read())
-#        output_file.write(j2_template.render(plotly_jinja_data))
-
+fig.write_html("overblikFigur.html",include_plotlyjs='cdn')
