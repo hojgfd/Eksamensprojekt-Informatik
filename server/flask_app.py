@@ -294,14 +294,24 @@ def pi_socket(ws):
                 pi_ws = None
         print("[ws] Pi disconnected")
 
-@app.get("/status")
+@app.get("/kamera/status")
 def status():
     with pi_lock:
         connected = pi_ws is not None
     return jsonify({"pi_connected": connected})
 
-@app.get("/capture")
-def capture():
+@app.get("/kamera/image")
+def kamera_image():
+    timeout = float(request.args.get("timeout", 10))
+
+    result = send_message(pi_lock, "image", timeout)
+    if result:
+        return Response(result, mimetype="image/jpeg")
+    else:
+        return jsonify({"error": "No Pi connected or did not respond in time"}), 500
+
+@app.get("/kamera/yolo")
+def kamera_yolo():
     timeout = float(request.args.get("timeout", 10))
 
     result = send_message(pi_lock, "yolo", timeout)
@@ -310,8 +320,9 @@ def capture():
     else:
         return jsonify({"error": "No Pi connected or did not respond in time"}), 500
 
-@app.get("/dict")
-def yolo_dict():
+
+@app.get("/kamera/dict")
+def kamera_yolo_dict():
     timeout = float(request.args.get("timeout", 10))
 
     result = send_message(pi_lock, "yolo_dict", timeout)

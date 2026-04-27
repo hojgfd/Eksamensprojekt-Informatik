@@ -7,7 +7,7 @@ from collections import defaultdict
 import csv
 
 def run_classification_model(model, frame, confidence_threshold):
-    result = model(frame)[0]
+    result = model(frame, verbose=False)[0]
     counter = defaultdict(int)
 
     for box in result.boxes:
