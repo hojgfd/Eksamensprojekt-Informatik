@@ -35,6 +35,7 @@ class Camera:
         # er der blevet taget et frame for nyligt?
             # send latest frame
         if time.time() > self.time_since_frame + self.frame_delay and self.latest_frame:
+            print("send latest frame")
             return self.latest_frame
 
         # åben frame hvis ikke åbent
@@ -47,7 +48,7 @@ class Camera:
         ret, frame = self.cap.read()
         self.time_since_frame = time.time()
 
-        # lav thread som lukker frame om 5 sekunder
+        # lav thread som lukker frame om X sekunder
         if self.thread is None:
             self.thread = threading.Thread(target=self.closing_thread, daemon=True)
             self.thread.start()
@@ -72,11 +73,12 @@ class Camera:
         if self.cap is not None:
             self.cap.release()
             self.cap = None
+            print("closing capture")
 
         self.thread = None
         self.stop_thread = threading.Event()
 
-camera = Camera(0, 5, 0.1)
+camera = Camera(0, 10, 0.1)
 
 # -- camera -------------------------------------------------------------------
 
@@ -135,7 +137,7 @@ def _on_message(ws, message):
         request_id = data["request_id"]
         print(f"[ws] capture request  id={request_id}")
         try:
-            frame = capture_frame()
+            frame = camera.get_frame()
             annotated_frame, counter = run_classification_model(model, frame, confidence_threshold)
 
             counter["request_id"] = request_id
