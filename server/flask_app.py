@@ -29,7 +29,10 @@ def update():
 @app.route('/')
 def home():
     init_db()
-    return render_template("index.html")
+    if session.get('user'):
+        return render_template("index.html")
+    else:
+        return render_template("newuser.html")
 
 @app.route('/live_data')
 def live_data():
@@ -176,6 +179,10 @@ def reserve():
 @app.route('/upload_form')
 def upload_form():
     return render_template("upload_form.html")
+
+@app.get('/testt')
+def testt():
+    return render_template("test.html")
 
 @app.route('/overblik')
 def overblik():
