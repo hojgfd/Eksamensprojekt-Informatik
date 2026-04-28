@@ -9,6 +9,12 @@
             text-align: center;
             padding-top: 100px;
         }
+        iframe{
+            width: 640px;
+            height: 480px;
+            flex: 1;
+            border: 3px solid black;
+        }
         h1 {
             margin-bottom: 40px;
         }
@@ -56,6 +62,17 @@
     {% endfor %}
 </select>
 
+
+
+<body>
+<h1>Live data</h1>
+<h3>Pladser tilbage: {{ spots_left }}</h3>
+<h3>Pladser taget: {{ spots_taken }}</h3>
+<iframe src="/kamera/yolo" width="flex"></iframe>
+
+
+</body>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <canvas id="myChart" width="600" height="300"></canvas>
@@ -100,11 +117,6 @@ function updateChart(selectedDate) {
             labels: data.labels,
             datasets: [
                 {
-                    label: 'Pladser tilbage',
-                    data: data.left,
-                    borderWidth: 2
-                },
-                {
                     label: 'Pladser taget',
                     data: data.taken,
                     borderWidth: 2
@@ -122,12 +134,4 @@ document.getElementById("dateSelect").addEventListener("change", function() {
 // Start med "alle"
 updateChart("all");
 </script>
-
-<body>
-
-<h1>Live data</h1>
-<h3>Pladser tilbage: {{ spots_left }}</h3>
-<h3>Pladser taget: {{ spots_taken }}</h3>
-
-</body>
 </html>
