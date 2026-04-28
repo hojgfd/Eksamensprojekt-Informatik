@@ -3,26 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <title>Overblik</title>
+    <h1>Overblik over reserveret pladser</h1>
 </head>
 
 <style>
 
-    head{
+    head {
         font-family: Arial, sans-serif;
-            text-align: center;
+        text-align: center;
     }
 
     body {
             font-family: Arial, sans-serif;
-            text-align: left;
+            text-align: center;
         }
-
 
 
 </style>
 
 <body>
-    <h1>Overblik over reserveret pladser</h1>
+
 
     <!--<img src="{{url_for('static', filename='Overblik.jpg')}}" /> -->
 
@@ -44,9 +44,7 @@
 
     <p style="color: darkmagenta;">Kan Ikke Reserveres: {{unavailable_spots}}</p>
 
-    <iframe src="{{url_for('static', filename='overblik_figur.html')}}" height="800" width="1200" frameborder="1"></iframe>
-
-    <!--<p>Total spots: {{ total_spots }}</p> -->
+    {{ fig | safe }}
 
 </body>
 </html>

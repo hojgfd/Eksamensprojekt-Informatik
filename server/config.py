@@ -1,0 +1,1 @@
+blocked_spots = {16, 17, 18}
