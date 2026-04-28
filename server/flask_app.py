@@ -1,3 +1,4 @@
+import plotly
 from flask import Flask, render_template, request, redirect, session, jsonify, Response
 import os, time
 from datetime import date, timedelta
@@ -6,11 +7,13 @@ from auth import auth
 import random as rnd
 from datetime import datetime, timedelta
 
+import overblik_kort
+from config import blocked_spots
+
 import threading, json, uuid
 from flask_sock import Sock
 
 parking_spots = {i: None for i in range(1, 19)}
-blocked_spots = {16, 17, 18}
 
 app = Flask(__name__)
 app.secret_key = "minmegethemmeligenøgle"
@@ -198,14 +201,16 @@ def overblik():
 
     db.close()
 
+    fig = overblik_kort.build_fig()
+
     return render_template(
         "overblik.html",
         spots=spots,
         occupied_spots=occupied_spots_len,
         total_spots=total_spots,
         unavailable_spots=total_blocked_spots,
-        today=today
-
+        today=today,
+        fig=fig.to_html(full_html=False),
     )
 
 # eksempel for curl:
