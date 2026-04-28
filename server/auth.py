@@ -34,9 +34,10 @@ def login():
             session["user"] = {
                 "id": user["id"],
                 "username": user["username"],
-                "address": user["address"]
+                "address": user["address"],
+                "plate": user["plate"]
             }
-            return redirect("/reservation")
+            return redirect("/")
 
     return render_template("login.html")
 

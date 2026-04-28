@@ -58,6 +58,17 @@
             cursor: pointer;
         }
 
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            margin-bottom: 20px;
+            font-size: 16px;
+            text-decoration: none;
+            background-color: lightgray;
+            color: black;
+            border: 1px solid black;
+        }
+
         .legend {
             margin-top: 20px;
         }
@@ -85,15 +96,13 @@
     </p>
     {% endif %}
 
-    <a href="/profile">
-    <button style="margin-bottom: 20px;">Profil</button>
-    </a>
-
-    <a href="/logout">
-        <button style="margin-bottom: 20px;">Log ud</button>
-    </a>
+    <a href="/profile" class="btn">Profil</a>
+    <a href="/logout" class="btn">Log ud</a>
+    <a href="/" class="btn">Tilbage</a>
 
     <form method="POST" action="/reservation/reserver">
+        <input type="text" name="plade" value="{{ user.plate or '' }}" placeholder="Nummerplade" required>
+        <button type="submit">Reservér</button>
         {{fig | safe}}
         <!--<div class="grid">
             {% for spot in spots %}
@@ -109,8 +118,6 @@
             {% endfor %}
         </div>-->
 
-        <input type="text" name="plade" value="{{ user.plate or '' }}" placeholder="Nummerplade" required>
-        <button type="submit">Reservér automatisk</button>
     </form>
 
     <div class="legend">

@@ -38,10 +38,10 @@ def init_db():
                  CREATE TABLE IF NOT EXISTS users
                  (
                      id INTEGER PRIMARY KEY AUTOINCREMENT,
-                     username TEXT UNIQUE,
+                     username TEXT LOWER UNIQUE,
                      password TEXT,
                      address TEXT UNIQUE,
-                     distance INTEGER UNIQUE,
+                     distance INTEGER,
                      plate TEXT UNIQUE
                  )
                  """)

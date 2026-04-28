@@ -33,6 +33,17 @@
             border-radius: 8px;
             cursor: pointer;
         }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            margin-bottom: 20px;
+            font-size: 16px;
+            text-decoration: none;
+            background-color: lightgray;
+            color: black;
+            border: 1px solid black;
+        }
         button:hover {
             background: #0056b3;
         }
@@ -53,11 +64,11 @@
 
 <form method="POST">
     <input type="text" name="address" placeholder="Adresse" value="{{ user.address }}" required>
-    <input type="text" name="plate" placeholder="Nummerplade" value="{{ user.plate or '' }}">
+    <input type="text" name="plate" placeholder="Nummerplade" value="{{ user.plate }}">
     <button type="submit">Gem ændringer</button>
 </form>
 
-<a href="/">Tilbage</a>
+<a href="/" >Tilbage</a>
 
 </body>
 </html>
