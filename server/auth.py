@@ -9,13 +9,13 @@ long_skole = 10.187640
 @auth.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
-        username = request.form["username"]
+        username = request.form["username"].lower()
         password = request.form["password"]
         address = request.form["address"]
-        distance = distance_coord_to_string(lat_skole, long_skole, address) # DEBUG
+        distance = distance_coord_to_string(lat_skole, long_skole, address)
         plate = request.form["plate"]
 
-        print(f"Distance fra addresse til skolen: {distance}")
+        print(f"Distance fra addresse til skolen: {distance}") # DEBUG
         create_user(username, password, address, distance, plate)
         return redirect("/login")
 
@@ -25,7 +25,7 @@ def register():
 @auth.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        username = request.form["username"]
+        username = request.form["username"].lower()
         password = request.form["password"]
 
         user = get_user(username)
