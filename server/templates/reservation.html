@@ -94,7 +94,8 @@
     </a>
 
     <form method="POST" action="/reservation/reserver">
-        <div class="grid">
+        {{fig | safe}}
+        <!--<div class="grid">
             {% for spot in spots %}
                 <div class="spot
                     {% if spot.id in blocked %}blocked
@@ -106,7 +107,7 @@
 
                 </div>
             {% endfor %}
-        </div>
+        </div>-->
 
         <input type="text" name="plade" value="{{ user.plate or '' }}" placeholder="Nummerplade" required>
         <button type="submit">Reservér automatisk</button>
