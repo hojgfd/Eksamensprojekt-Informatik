@@ -88,6 +88,8 @@ def reservation():
 
     db.close()
 
+    fig = overblik_kort.build_fig()
+
     #debug
     print(spots)
     for s in spots:
@@ -98,7 +100,8 @@ def reservation():
         spots=spots,
         blocked=blocked_spots,
         tomorrow=tomorrow,
-        user=session.get("user")
+        user=session.get("user"),
+        fig=fig.to_html(full_html=False),
     )
 
 @app.route("/reservation/reserver", methods=["POST"])
