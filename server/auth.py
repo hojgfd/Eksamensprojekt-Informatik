@@ -45,7 +45,7 @@ def login():
 @auth.route("/logout")
 def logout():
     session.clear()
-    return redirect("/login")
+    return redirect("/")
 
 @auth.route("/profile", methods=["GET", "POST"])
 def profile():
