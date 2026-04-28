@@ -11,7 +11,7 @@ from ultralytics import YOLO
 from opfange_bil import run_classification_model
 
 SERVER_WS_URI   = "ws://localhost:5000/pi"  # <- change this
-CAMERA_INDEX    = 0
+CAMERA_INDEX    = 1
 RECONNECT_DELAY = 5    # seconds between WebSocket reconnects
 
 model = YOLO("yolo26n.pt")
@@ -40,7 +40,7 @@ class Camera:
 
         # åben frame hvis ikke åbent
         if self.cap is None or not self.cap.isOpened():
-            self.cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+            self.cap = cv2.VideoCapture(self.camera_index, cv2.CAP_DSHOW)
             self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
 
         # tag frame
@@ -78,7 +78,7 @@ class Camera:
         self.thread = None
         self.stop_thread = threading.Event()
 
-camera = Camera(0, 10, 0.1)
+camera = Camera(CAMERA_INDEX, 10, 0.1)
 
 # -- camera -------------------------------------------------------------------
 
