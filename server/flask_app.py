@@ -38,6 +38,9 @@ def live_data():
     ).fetchall()
 
     db.close()
+    print("ROWS:", rows)
+    for r in rows:
+        print(dict(r))
 
     # Lav lister til grafen
     timestamps = [row["timestamp"] for row in rows]
@@ -178,12 +181,6 @@ def overblik():
         ORDER BY id ASC
     """).fetchall()
 
-    #occupied_spots = db.execute("""
-    #    SELECT *
-    #    FROM parking
-    #    ORDER BY id ASC
-    #""").fetchall()
-
     total_spots = len(spots)
     total_blocked_spots = len(blocked_spots)
     occupied_spots = []
@@ -242,7 +239,7 @@ def update_live_data():
     spots_left = data.get("spots_left")
     spots_taken = data.get("spots_taken")
 
-    if spots_left is None and spots_taken is None:
+    if spots_left is None or spots_taken is None:
         return jsonify({"error": "Missing spots_left and/or spots_taken"}), 400
 
     init_db()
