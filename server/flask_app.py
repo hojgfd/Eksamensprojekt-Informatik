@@ -38,6 +38,9 @@ def live_data():
     ).fetchall()
 
     db.close()
+    print("ROWS:", rows)
+    for r in rows:
+        print(dict(r))
 
     # Lav lister til grafen
     timestamps = [row["timestamp"] for row in rows]
@@ -180,15 +183,25 @@ def overblik():
 
     total_spots = len(spots)
     total_blocked_spots = len(blocked_spots)
+    occupied_spots = []
+
 
     today = date.today()
+    print(f"tomorrow: {date.today() + timedelta(days=1)}")
+    for s in spots:
+        print(dict(s))
+        if dict(s).get("date") == str(date.today() + timedelta(days=1)):
+            occupied_spots.append(dict(s))
+
+    occupied_spots_len = len(occupied_spots)
+
 
     db.close()
 
     return render_template(
         "overblik.html",
         spots=spots,
-        #occupied_spots=blocked_spots,
+        occupied_spots=occupied_spots_len,
         total_spots=total_spots,
         unavailable_spots=total_blocked_spots,
         today=today
@@ -226,7 +239,7 @@ def update_live_data():
     spots_left = data.get("spots_left")
     spots_taken = data.get("spots_taken")
 
-    if spots_left is None and spots_taken is None:
+    if spots_left is None or spots_taken is None:
         return jsonify({"error": "Missing spots_left and/or spots_taken"}), 400
 
     init_db()
